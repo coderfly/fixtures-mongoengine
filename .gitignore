@@ -1,0 +1,20 @@
+# IDE files
+.idea
+*.iml
+
+*.pyc
+.*.swp
+*.egg
+docs/.build
+docs/_build
+build/
+dist/
+*.egg-info/
+env/
+._*
+.DS_Store
+.coverage
+.project
+.pydevproject
+.tox
+.eggs
