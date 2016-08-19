@@ -6,5 +6,4 @@ setup(name='fixtures_mongoengine',
       description='MongoEngine Fixtures.',
       url='https://github.com/coderfly/fixtures-mongoengine/',
       install_requires=['mongoengine>=0.8.6'],
-      packages=['extras_mongoengine'],
-      )
+      packages=['fixtures_mongoengine'])
