@@ -2,4 +2,9 @@
 
 
 class FixtureMixin(object):
-    pass
+
+    def load_fixtures(self):
+        pass
+
+    def unload_fixtures(self):
+        pass

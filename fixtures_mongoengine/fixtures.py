@@ -24,6 +24,9 @@ class Fixture(object):
 
         self.data = {}
 
+    def before_load(self):
+        pass
+
     def load(self):
         raw_data = self._get_raw_data()
         for key, row in six.iteritems(raw_data):
@@ -31,9 +34,18 @@ class Fixture(object):
             model.save(self.validate)
             self.data[key] = model
 
+    def after_load(self):
+        pass
+
+    def before_unload(self):
+        pass
+
     def unload(self):
         self.data = {}
         self.document_class.objects().delete()
+
+    def after_unload(self):
+        pass
 
     def _get_raw_data(self):
         """
