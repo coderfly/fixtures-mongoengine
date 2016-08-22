@@ -11,8 +11,8 @@ class SimpleUserFixtureTestCase(MongoTestCase):
         fixture = FixtureUser()
         fixture.load()
 
-        self.assertEqual(fixture.data['user1'].first_name, 'Joyce')
-        self.assertEqual(fixture.data['user2'].first_name, 'Amy')
+        self.assertEqual(fixture['user1'].first_name, 'Joyce')
+        self.assertEqual(fixture['user2'].first_name, 'Amy')
 
         user1 = User.objects(first_name='Joyce').first()
         self.assertIsNotNone(user1)

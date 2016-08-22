@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fixtures_mongoengine.fixtures import Fixture
+from fixtures_mongoengine import Fixture
 from tests.models.user import User
 
 
