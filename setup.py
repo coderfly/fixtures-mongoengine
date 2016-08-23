@@ -2,11 +2,11 @@
 from distutils.core import setup
 
 setup(name='fixtures_mongoengine',
-      version='0.1',
+      version='1.0.0',
       description='MongoEngine Fixtures.',
       author='Vitaly Nikitin',
       url='https://github.com/coderfly/fixtures-mongoengine/',
       install_requires=['mongoengine>=0.8.6'],
       packages=['fixtures_mongoengine'],
-      keywords=['testing', 'fixtures']
+      keywords=['testing', 'fixtures', 'mongoengine']
       )
