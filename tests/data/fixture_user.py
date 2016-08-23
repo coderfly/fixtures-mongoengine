@@ -15,3 +15,9 @@ fixture_data = {
         'birthday': datetime.date(1987, 11, 27)
     }
 }
+
+fixture_data_invalid = {
+    'user1': {
+        'first_name': 'Joyce'
+    }
+}

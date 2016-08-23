@@ -12,3 +12,19 @@ fixture_data = {
         'author': '{users.user2}',
     }
 }
+
+fixture_data_wrong_ref_format = {
+    'post1': {
+        'title': 'Sherlock Gets A Musical Parody',
+        'text': 'Sherlock fans still have a way to go before Season 4 of the BBC drama finally arrives.',
+        'author': '{users}',
+    }
+}
+
+fixture_data_wrong_ref = {
+    'post1': {
+        'title': 'Sherlock Gets A Musical Parody',
+        'text': 'Sherlock fans still have a way to go before Season 4 of the BBC drama finally arrives.',
+        'author': '{users.wrong_user_ref}',
+    }
+}
