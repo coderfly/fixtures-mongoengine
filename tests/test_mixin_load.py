@@ -1,35 +1,27 @@
 # -*- coding: utf-8 -*-
+from unittest import TestCase
+
 from fixtures_mongoengine import FixturesMixin
-from tests.fixtures.fixture_post import FixturePost, FixturePostWithReference, FixturePostWrongDepended, FixturePostWrongRef
+from fixtures_mongoengine import FixturesMongoengineException
+from tests.fixtures.fixture_circular import FixtureCircularMixin
+from tests.fixtures.fixture_post import FixturePost
 from tests.fixtures.fixture_user import FixtureUser
-from tests.models.user import User
-from tests.test_case import MongoTestCase
+from tests.fixtures.fixture_wrong_depended import FixtureWrongDependedClassMixin
+from tests.test_case import MongoFixturesTestCase, MongoTestCase, MongoWithClearTestCase
 
 
-# class BaseMixinLoadFixtureTestCase(MongoTestCase, FixtureMixin):
-#
-#     def __init__(self, methodName='runTest'):
-#         super(BaseMixinLoadFixtureTestCase, self).__init__(methodName)
-#         FixtureMixin.__init__(self)
-#
-#     def setUp(self):
-#         super(BaseMixinLoadFixtureTestCase, self).setUp()
-#
-#         self.unload_fixtures()
-#         self.load_fixtures()
-
-
-class MixinSimpleUserTestCase(MongoTestCase, FixturesMixin):
+class SimpleFixturesTestCase(MongoFixturesTestCase):
 
     fixtures_conf = {
         'users': FixtureUser
     }
 
     def test_load(self):
+
         self.assertEqual(type(self.users), FixtureUser)
 
 
-class MixinPostTestCase(MongoTestCase):
+class DependedFixturesTestCase(MongoFixturesTestCase):
     fixtures_conf = {
         'posts': FixturePost
     }
@@ -38,28 +30,19 @@ class MixinPostTestCase(MongoTestCase):
         self.assertEqual(type(self.posts), FixturePost)
 
 
-class MixinPostWithReferenceTestCase(MongoTestCase):
-    fixtures_conf = {
-        'posts': FixturePostWithReference
-    }
+class CreateFixturesTestCase(MongoWithClearTestCase):
 
-    def test_load(self):
-        self.assertEqual(type(self.posts), FixturePostWithReference)
+    def test_circular(self):
 
+        mixin = FixtureCircularMixin()
 
-class MixinPostWrongDependedTestCase(MongoTestCase):
-    fixtures_conf = {
-        'posts': FixturePostWrongDepended
-    }
+        with self.assertRaises(FixturesMongoengineException) as cm:
+            mixin.get_fixtures()
+        self.assertRegexpMatches(cm.exception.message, 'A circular dependency is detected for fixture')
 
-    def test_load(self):
-        self.assertEqual(type(self.posts), FixturePost)
+    def test_missing_depended_class(self):
 
-
-class MixinPostWrongRefTestCase(MongoTestCase):
-    fixtures_conf = {
-        'posts': FixturePostWrongRef
-    }
-
-    def test_load(self):
-        self.assertEqual(type(self.posts), FixturePost)
+        mixin = FixtureWrongDependedClassMixin()
+        with self.assertRaises(FixturesMongoengineException) as cm:
+            mixin.get_fixtures()
+        self.assertRegexpMatches(cm.exception.message, 'has not been registered in the fixture registry')

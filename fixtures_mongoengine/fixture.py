@@ -5,8 +5,33 @@ import six
 
 from fixtures_mongoengine.exceptions import FixturesMongoengineException
 
+_fixture_registry = {}
 
-class Fixture(object):
+
+def get_fixture_class(name):
+    doc = _fixture_registry.get(name, None)
+    if not doc:
+        # Possible old style name
+        single_end = name.split('.')[-1]
+        compound_end = '.%s' % single_end
+        possible_match = [k for k in _fixture_registry.keys()
+                          if k.endswith(compound_end) or k == single_end]
+        if len(possible_match) == 1:
+            doc = _fixture_registry.get(possible_match.pop(), None)
+    if not doc:
+        raise FixturesMongoengineException('"{}" has not been registered in the fixture registry.'.format(name))
+    return doc
+
+
+class MetaFixture(type):
+    def __new__(mcs, name, bases, attrs):
+        new_class = super(MetaFixture, mcs).__new__(mcs, name, bases, attrs)
+
+        _fixture_registry[new_class.__name__] = new_class
+        return new_class
+
+
+class Fixture(six.with_metaclass(MetaFixture, object)):
 
     document_class = None
 
@@ -41,7 +66,7 @@ class Fixture(object):
     def loaded(self):
         return self._loaded
 
-    def init_depend_fixtures(self, fixtures):
+    def init_depended_fixtures(self, fixtures):
         """
         :param fixtures: dict, {fixture_class: fixture}
         """

@@ -8,10 +8,10 @@ from tests.fixtures.fixture_post import (
 )
 from tests.fixtures.fixture_user import FixtureUser, FixtureUserInvalidData
 from tests.models.user import User
-from tests.test_case import MongoTestCase
+from tests.test_case import MongoWithClearTestCase
 
 
-class LoadFixtureTestCase(MongoTestCase):
+class LoadFixtureTestCase(MongoWithClearTestCase):
 
     def test_fixture_without_dependencies(self):
 
@@ -28,7 +28,7 @@ class LoadFixtureTestCase(MongoTestCase):
     def test_fixture_with_dependencies(self):
         fixture_user = FixtureUser()
         fixture_post = FixturePost()
-        fixture_post.init_depend_fixtures({FixtureUser: fixture_user})
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
         fixture_user.load()
         fixture_post.load()
 
@@ -37,7 +37,7 @@ class LoadFixtureTestCase(MongoTestCase):
     def test_fixture_with_reference_dependencies(self):
         fixture_user = FixtureUser()
         fixture_post = FixturePostWithReference()
-        fixture_post.init_depend_fixtures({FixtureUser: fixture_user})
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
         fixture_user.load()
         fixture_post.load()
 
@@ -47,7 +47,7 @@ class LoadFixtureTestCase(MongoTestCase):
     def test_fixture_with_wrong_dependency(self):
         fixture_user = FixtureUser()
         fixture_post = FixturePostWrongDepended()
-        fixture_post.init_depend_fixtures({FixtureUser: fixture_user})
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
         fixture_user.load()
 
         with self.assertRaises(FixturesMongoengineException) as cm:
@@ -57,7 +57,7 @@ class LoadFixtureTestCase(MongoTestCase):
     def test_fixture_with_wrong_ref_format(self):
         fixture_user = FixtureUser()
         fixture_post = FixturePostWrongRefFormat()
-        fixture_post.init_depend_fixtures({FixtureUser: fixture_user})
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
         fixture_user.load()
 
         with self.assertRaises(FixturesMongoengineException) as cm:
@@ -67,15 +67,46 @@ class LoadFixtureTestCase(MongoTestCase):
     def test_fixture_with_wrong_ref(self):
         fixture_user = FixtureUser()
         fixture_post = FixturePostWrongRef()
-        fixture_post.init_depend_fixtures({FixtureUser: fixture_user})
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
         fixture_user.load()
 
         with self.assertRaises(FixturesMongoengineException) as cm:
             fixture_post.load()
         self.assertRegexpMatches(cm.exception.message, 'Model .* not fount in depended fixture')
 
+    def test_fixture_skip_init_depended(self):
+        fixture_post = FixturePost()
 
-class UserFixtureInvalidDataTestCase(MongoTestCase):
+        with self.assertRaises(FixturesMongoengineException) as cm:
+            fixture_post.load()
+        self.assertRegexpMatches(cm.exception.message, 'Depended fixture .* wasn\'t created')
+
+    def test_fixture_skip_depended_load(self):
+        fixture_user = FixtureUser()
+        fixture_post = FixturePost()
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
+
+        with self.assertRaises(FixturesMongoengineException) as cm:
+            fixture_post.load()
+        self.assertRegexpMatches(cm.exception.message, 'Depended fixture .* wasn\'t loaded')
+
+
+class UnloadFixtureTestCase(MongoWithClearTestCase):
+
+    def test_unload(self):
+
+        fixture = FixtureUser()
+        fixture.load()
+        fixture.unload()
+
+        with self.assertRaises(KeyError):
+            print(fixture['user1'].first_name)
+
+        user1 = User.objects(first_name='Joyce').first()
+        self.assertIsNone(user1)
+
+
+class UserFixtureInvalidDataTestCase(MongoWithClearTestCase):
 
     def test_load(self):
         fixture = FixtureUserInvalidData()

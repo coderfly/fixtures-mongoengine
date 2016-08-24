@@ -4,18 +4,12 @@ from collections import OrderedDict
 import six
 
 from fixtures_mongoengine import FixturesMongoengineException
-from fixtures_mongoengine.fixture import Fixture
-from fixtures_mongoengine.utils import can_persist_fixtures
+from fixtures_mongoengine.fixture import Fixture, get_fixture_class
 
 """
 Metaclass idea and parts of code taken from https://github.com/croach/Flask-Fixtures
 """
 
-CLASS_SETUP_NAMES = ('setUpClass', 'setup_class', 'setup_all', 'setupClass', 'setupAll', 'setUpAll')
-CLASS_TEARDOWN_NAMES = (
-    'tearDownClass', 'teardown_class', 'teardown_all',
-    'teardownClass', 'teardownAll', 'tearDownAll'
-)
 TEST_SETUP_NAMES = ('setUp',)
 TEST_TEARDOWN_NAMES = ('tearDown',)
 
@@ -39,39 +33,15 @@ class MetaFixturesMixin(type):
 
         fixtures_conf = attrs.get('fixtures_conf', [])
 
-        #  attrs['__fixtures'] = None
-
-        # Should we persist fixtures across tests, i.e., should we use the
-        # setUpClass and tearDownClass methods instead of setUp and tearDown?
-        persist_fixtures = attrs.get('persist_fixtures', False) and can_persist_fixtures()
-
         # We only need to do something if there's a set of fixtures,
         # otherwise, do nothing. The main reason this is here is because this
         # method is called when the FixturesMixin class is created and we
         # don't want to do any test setup on that class.
         if fixtures_conf:
-            if not persist_fixtures:
-                child_setup_fn = mcs.get_child_fn(attrs, TEST_SETUP_NAMES, bases)
-                child_teardown_fn = mcs.get_child_fn(attrs, TEST_TEARDOWN_NAMES, bases)
-                attrs[child_setup_fn.__name__] = mcs.setup_handler(setup, child_setup_fn)
-                attrs[child_teardown_fn.__name__] = mcs.teardown_handler(teardown, child_teardown_fn)
-            else:
-                child_setup_fn = mcs.get_child_fn(attrs, CLASS_SETUP_NAMES, bases)
-                child_teardown_fn = mcs.get_child_fn(attrs, CLASS_TEARDOWN_NAMES, bases)
-                attrs[child_setup_fn.__name__] = classmethod(mcs.setup_handler(setup, child_setup_fn))
-                attrs[child_teardown_fn.__name__] = classmethod(mcs.teardown_handler(teardown, child_teardown_fn))
-
-        classinit = attrs.get('__init__')  # could be None
-
-        # define an __init__ function for the new class
-        def __init__(self, *args, **kwargs):
-            # call the __init__ functions of all the bases
-            for base in type(self).__bases__:
-                base.__init__(self, *args, **kwargs)
-            # also call any __init__ function that was in the new class
-            if classinit:  classinit(self, *args, **kwargs)
-        # add the local function to the new class
-        attrs['__init__'] = __init__
+            child_setup_fn = mcs.get_child_fn(attrs, TEST_SETUP_NAMES, bases)
+            child_teardown_fn = mcs.get_child_fn(attrs, TEST_TEARDOWN_NAMES, bases)
+            attrs[child_setup_fn.__name__] = mcs.setup_handler(setup, child_setup_fn)
+            attrs[child_teardown_fn.__name__] = mcs.teardown_handler(teardown, child_teardown_fn)
 
         return super(MetaFixturesMixin, mcs).__new__(mcs, name, bases, attrs)
 
@@ -167,12 +137,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
     ```
     """
 
-    persist_fixtures = False
-
-    def __init__(self):
-        super(FixturesMixin, self).__init__()
-
-        self.__fixtures = None
+    __fixtures = None
 
     def __getattr__(self, name):
         if name in self.__dict__:
@@ -207,7 +172,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
             fixture.unload()
 
         for fixture in fixtures:
-            fixture.unload()
+            fixture.after_unload()
 
     def get_fixtures(self):
         """
@@ -240,6 +205,8 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
                     fixture = fixture_class()
                     stack.append(fixture)
                     for dep in fixture.depends.values():
+                        if isinstance(dep, six.string_types):
+                            dep = get_fixture_class(dep)
                         stack.append(dep)
                 elif instances[fixture_class] is None:
                     msg = 'A circular dependency is detected for fixture {}.'.format(fixture_class.__name__)
@@ -247,7 +214,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
 
         fixtures = {}
         for fixture_class, fixture in six.iteritems(instances):
-            fixture.init_depend_fixtures(instances)
+            fixture.init_depended_fixtures(instances)
             name = aliases[fixture_class] if fixture_class in aliases else fixture_class.__name__
             fixtures[name] = fixture
 
