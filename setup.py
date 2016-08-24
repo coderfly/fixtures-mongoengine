@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from setuptools import setup
+from fixtures_mongoengine import __version__
 
 setup(name='fixtures_mongoengine',
-      version='1.0.0',
+      version=__version__,
       description='MongoEngine Fixtures.',
       author='Vitaly Nikitin',
       author_email='alaris.nik@gmail.com',
