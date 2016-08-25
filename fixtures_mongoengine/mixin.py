@@ -18,6 +18,7 @@ def setup(obj):
     """
     :type obj: FixturesMixin
     """
+    obj.unload_fixtures()
     obj.load_fixtures()
 
 
