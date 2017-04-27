@@ -4,7 +4,7 @@ from mongoengine import ValidationError
 from fixtures_mongoengine import FixturesMongoengineException
 from tests.fixtures.fixture_post import (
     FixturePost, FixturePostWithReference, FixturePostWrongDepended,
-    FixturePostWrongRefFormat, FixturePostWrongRef
+    FixturePostWrongRefFormat, FixturePostWrongRef, FixturePostWithEmbedded
 )
 from tests.fixtures.fixture_user import FixtureUser, FixtureUserInvalidData
 from tests.models.user import User
@@ -43,6 +43,15 @@ class LoadFixtureTestCase(MongoWithClearTestCase):
 
         self.assertIsInstance(fixture_post['post1'].author, User)
         self.assertEqual(fixture_post['post1'].author.pk, fixture_user['user1'].pk)
+
+    def test_fixture_with_embedded_dependencies(self):
+        fixture_user = FixtureUser()
+        fixture_post = FixturePostWithEmbedded()
+        fixture_post.init_depended_fixtures({FixtureUser: fixture_user})
+        fixture_user.load()
+        fixture_post.load()
+
+        self.assertEqual(fixture_post['post1'].author.id, fixture_user['user1'].pk)
 
     def test_fixture_with_wrong_dependency(self):
         fixture_user = FixtureUser()

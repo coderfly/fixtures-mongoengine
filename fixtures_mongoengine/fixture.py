@@ -128,11 +128,13 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
         if self.depends:
             for key, value in six.iteritems(copy):
                 if isinstance(value, six.string_types):
-                    copy[key] = self._get_resolved_value(key, value)
+                    copy[key] = self._get_resolved_value(value)
+                elif isinstance(value, dict):
+                    copy[key] = self._resolve_depends(value)
 
         return copy
 
-    def _get_resolved_value(self, key, value):
+    def _get_resolved_value(self, value):
         match = self.depend_re.match(value)
         if not match:
             return value
