@@ -5,7 +5,7 @@ Lets you create fixtures based on python dicts. Supports string references betwe
 Has been inspired by [yii2 fixtures](https://github.com/yiisoft/yii2/tree/master/framework/test).
 
 
-* Free software: BSD license
+* Free software: MIT license
 
 Usage
 -----
