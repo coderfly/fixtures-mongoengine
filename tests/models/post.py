@@ -8,12 +8,14 @@ class Post(Document):
     title = fields.StringField(required=True)
     text = fields.StringField(required=True)
     author = fields.ObjectIdField(required=True)
+    created_at = fields.DateTimeField()
 
 
 class PostWithReference(Document):
     title = fields.StringField(required=True)
     text = fields.StringField(required=True)
     author = fields.ReferenceField(User, required=True)
+    created_at = fields.DateTimeField()
 
 
 class AuthorEmbedded(EmbeddedDocument):
@@ -26,3 +28,11 @@ class PostWithEmbedded(Document):
     title = fields.StringField(required=True)
     text = fields.StringField(required=True)
     author = fields.EmbeddedDocumentField(AuthorEmbedded, required=True)
+    created_at = fields.DateTimeField()
+
+
+class PostWithList(Document):
+    title = fields.StringField(required=True)
+    text = fields.StringField(required=True)
+    authors = fields.ListField(fields.EmbeddedDocumentField(AuthorEmbedded, required=True))
+    created_at = fields.DateTimeField()

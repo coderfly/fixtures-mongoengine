@@ -2,7 +2,7 @@
 
 from fixtures_mongoengine import Fixture
 from tests.fixtures.fixture_user import FixtureUser
-from tests.models.post import Post, PostWithReference, PostWithEmbedded
+from tests.models.post import Post, PostWithReference, PostWithEmbedded, PostWithList
 
 
 class FixturePost(Fixture):
@@ -35,6 +35,18 @@ class FixturePostWithEmbedded(Fixture):
     data_file = 'tests.data.fixture_post'
 
     attr_name = 'fixture_data_embedded'
+
+
+class FixturePostWithList(Fixture):
+    document_class = PostWithList
+
+    depends = {
+        'users': FixtureUser
+    }
+
+    data_file = 'tests.data.fixture_post'
+
+    attr_name = 'fixture_data_list'
 
 
 class FixturePostWrongDepended(Fixture):

@@ -84,7 +84,8 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
 
         raw_data = self._get_raw_data()
         for key, row in six.iteritems(raw_data):
-            row = self._resolve_depends(row)
+            if self.depends:
+                row = self._resolve_depends(row)
             model = self.document_class(**row)
             model.save(self.validate)
             self._data[key] = model
@@ -120,17 +121,30 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
         """
         :rtype: dict
         """
-        module = importlib.import_module(self.data_file)
-        return getattr(module, self.attr_name)
+        data_module = importlib.import_module(self.data_file)
+        return getattr(data_module, self.attr_name)
 
-    def _resolve_depends(self, row):
-        copy = dict(row)
-        if self.depends:
-            for key, value in six.iteritems(copy):
-                if isinstance(value, six.string_types):
-                    copy[key] = self._get_resolved_value(value)
-                elif isinstance(value, dict):
-                    copy[key] = self._resolve_depends(value)
+    def _resolve_depends(self, value):
+        if isinstance(value, six.string_types):
+            return self._get_resolved_value(value)
+        elif isinstance(value, dict):
+            return self._get_resolved_dict(value)
+        elif isinstance(value, list):
+            return self._get_resolved_list(value)
+
+        return value
+
+    def _get_resolved_dict(self, value):
+        copy = dict(value)
+        for key, value in six.iteritems(copy):
+            copy[key] = self._resolve_depends(value)
+
+        return copy
+
+    def _get_resolved_list(self, value):
+        copy = []
+        for item in value:
+            copy.append(self._resolve_depends(item))
 
         return copy
 
@@ -157,6 +171,3 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
             raise FixturesMongoengineException(msg)
 
         return fixture[ref_model].pk
-
-
-
