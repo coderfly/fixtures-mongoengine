@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from fixtures_mongoengine import Fixture
 from fixtures_mongoengine import FixturesMixin
-from tests.models.circular import Circular
+from tests.models.simple import Simple
 
 
 class FixtureCircular(Fixture):
-    document_class = Circular
+    document_class = Simple
 
     depends = {
         'circular': 'FixtureCircular2'
@@ -13,7 +13,7 @@ class FixtureCircular(Fixture):
 
 
 class FixtureCircular2(Fixture):
-    document_class = Circular
+    document_class = Simple
 
     depends = {
         'circular': FixtureCircular

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
+import six
 
-from fixtures_mongoengine import FixturesMixin
 from fixtures_mongoengine import FixturesMongoengineException
 from tests.fixtures.fixture_circular import FixtureCircularMixin
+from tests.fixtures.fixture_inner_dependent import FixtureInnerDependentMixin, FixtureInnerMain, FixtureInnerLevel1, \
+    FixtureInnerLevel2
 from tests.fixtures.fixture_post import FixturePost
 from tests.fixtures.fixture_user import FixtureUser
 from tests.fixtures.fixture_wrong_depended import FixtureWrongDependedClassMixin
-from tests.test_case import MongoFixturesTestCase, MongoTestCase, MongoWithClearTestCase
+from tests.test_case import MongoFixturesTestCase, MongoWithClearTestCase
 
 
 class SimpleFixturesTestCase(MongoFixturesTestCase):
@@ -46,3 +47,13 @@ class CreateFixturesTestCase(MongoWithClearTestCase):
         with self.assertRaises(FixturesMongoengineException) as cm:
             mixin.get_fixtures()
         self.assertRegexpMatches(cm.exception.message, 'has not been registered in the fixture registry')
+
+    def test_inner_dependent(self):
+
+        mixin = FixtureInnerDependentMixin()
+        fixtures = mixin.get_fixtures()
+
+        iterator = six.itervalues(fixtures)
+        self.assertEqual(type(next(iterator)), FixtureInnerLevel2)
+        self.assertEqual(type(next(iterator)), FixtureInnerLevel1)
+        self.assertEqual(type(next(iterator)), FixtureInnerMain)

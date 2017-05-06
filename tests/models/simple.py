@@ -3,5 +3,5 @@
 from mongoengine import Document, fields
 
 
-class Circular(Document):
+class Simple(Document):
     name = fields.StringField(required=True)

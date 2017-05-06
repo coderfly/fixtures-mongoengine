@@ -126,7 +126,7 @@ class MetaFixturesMixin(type):
 
 class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
 
-    fixtures_conf = []
+    fixtures_conf = {}
     """
     Declares the fixtures that are needed by the current test case.
     The return value of this method must be an array of fixture configurations. For example,
@@ -189,7 +189,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
         for name, fixture_class in six.iteritems(self.fixtures_conf):
             aliases[fixture_class] = name
 
-        instances = {}
+        instances = OrderedDict()
         stack = [fixture_class for name, fixture_class in six.iteritems(self.fixtures_conf)]
         stack.reverse()
         while len(stack) > 0:
@@ -213,7 +213,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
                     msg = 'A circular dependency is detected for fixture {}.'.format(fixture_class.__name__)
                     raise FixturesMongoengineException(msg)
 
-        fixtures = {}
+        fixtures = OrderedDict()
         for fixture_class, fixture in six.iteritems(instances):
             fixture.init_depended_fixtures(instances)
             name = aliases[fixture_class] if fixture_class in aliases else fixture_class.__name__
