@@ -4,7 +4,7 @@ from collections import OrderedDict
 import six
 
 from fixtures_mongoengine import FixturesMongoengineException
-from fixtures_mongoengine.fixture import Fixture, get_fixture_class
+from fixtures_mongoengine.fixture import Fixture, get_fixture_class, BaseFixture
 
 """
 Metaclass idea and parts of code taken from https://github.com/croach/Flask-Fixtures
@@ -194,7 +194,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
         stack.reverse()
         while len(stack) > 0:
             fixture = stack.pop()
-            if isinstance(fixture, Fixture):
+            if isinstance(fixture, BaseFixture):
                 fixture_class = fixture.__class__
                 if fixture_class in instances:
                     del instances[fixture_class]

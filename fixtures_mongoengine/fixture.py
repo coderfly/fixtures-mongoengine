@@ -31,9 +31,7 @@ class MetaFixture(type):
         return new_class
 
 
-class Fixture(six.with_metaclass(MetaFixture, object)):
-
-    document_class = None
+class BaseFixture(object):
 
     depends = {}
 
@@ -43,14 +41,13 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
 
     validate = True
 
+    pk_field_name = None
+
     def __init__(self):
-        super(Fixture, self).__init__()
+        super(BaseFixture, self).__init__()
 
-        if self.document_class is None:
-            raise FixturesMongoengineException('"document_class" must be set.')
-
-        self._data = {}
         self._loaded = False
+        self._data = {}
         self._depend_fixtures = {}
         self.depend_re = re.compile('\{([^\}]+)\}')
 
@@ -80,17 +77,7 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
         pass
 
     def load(self):
-        self._validate_depend_fixtures()
-
-        raw_data = self._get_raw_data()
-        for key, row in six.iteritems(raw_data):
-            if self.depends:
-                row = self._resolve_depends(row)
-            model = self.document_class(**row)
-            model.save(self.validate)
-            self._data[key] = model
-
-        self._loaded = True
+        pass
 
     def after_load(self):
         pass
@@ -99,8 +86,7 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
         pass
 
     def unload(self):
-        self._data = {}
-        self.document_class.objects().delete()
+        pass
 
     def after_unload(self):
         pass
@@ -170,4 +156,34 @@ class Fixture(six.with_metaclass(MetaFixture, object)):
             msg = 'Model "{}" not fount in depended fixture "{}".'.format(ref_model, ref_fixture)
             raise FixturesMongoengineException(msg)
 
-        return fixture[ref_model].pk
+        return getattr(fixture[ref_model], self.pk_field_name)
+
+
+class Fixture(six.with_metaclass(MetaFixture, BaseFixture)):
+
+    document_class = None
+
+    pk_field_name = 'pk'
+
+    def __init__(self):
+        super(Fixture, self).__init__()
+
+        if self.document_class is None:
+            raise FixturesMongoengineException('"document_class" must be set.')
+
+    def load(self):
+        self._validate_depend_fixtures()
+
+        raw_data = self._get_raw_data()
+        for key, row in six.iteritems(raw_data):
+            if self.depends:
+                row = self._resolve_depends(row)
+            model = self.document_class(**row)
+            model.save(self.validate)
+            self._data[key] = model
+
+        self._loaded = True
+
+    def unload(self):
+        self._data = {}
+        self.document_class.objects().delete()
