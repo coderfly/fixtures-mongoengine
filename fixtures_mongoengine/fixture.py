@@ -23,6 +23,19 @@ def get_fixture_class(name):
     return doc
 
 
+def getattr_recursive(o, path):
+    """
+    :type o:
+    :type path: list
+    :rtype:
+    """
+    name = path.pop(0)
+    if len(path) == 0:
+        return getattr(o, name)
+    else:
+        return getattr_recursive(getattr(o, name), path)
+
+
 class MetaFixture(type):
     def __new__(mcs, name, bases, attrs):
         new_class = super(MetaFixture, mcs).__new__(mcs, name, bases, attrs)
@@ -141,22 +154,25 @@ class BaseFixture(object):
 
         ref = match.group(1)
         parts = ref.split('.')
-        if len(parts) != 2:
+        if len(parts) < 2:
             msg = 'Wrong depend reference "{}" in fixture "{}"'.format(ref, self.__class__.__name__)
             raise FixturesMongoengineException(msg)
 
-        ref_fixture = parts[0]
+        ref_fixture = parts.pop(0)
         if ref_fixture not in self._depend_fixtures:
             msg = 'Fixture "{}" not fount in depended fixtures.'.format(ref_fixture)
             raise FixturesMongoengineException(msg)
 
         fixture = self._depend_fixtures[ref_fixture]
-        ref_model = parts[1]
+        ref_model = parts.pop(0)
         if ref_model not in fixture:
             msg = 'Model "{}" not fount in depended fixture "{}".'.format(ref_model, ref_fixture)
             raise FixturesMongoengineException(msg)
 
-        return getattr(fixture[ref_model], fixture.pk_field_name)
+        if len(parts) == 0:
+            return getattr(fixture[ref_model], fixture.pk_field_name)
+        else:
+            return getattr_recursive(fixture[ref_model], parts)
 
 
 class Fixture(six.with_metaclass(MetaFixture, BaseFixture)):

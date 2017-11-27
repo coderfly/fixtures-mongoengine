@@ -11,7 +11,7 @@ fixture_data = {
     'post2': {
         'title': 'NASA prepares to sample an asteroid',
         'text': 'On September 8, NASA will launch its first sample return mission to an asteroid.',
-        'author': '{users.user2}',
+        'author': '{users.user2.pk}',
     }
 }
 
