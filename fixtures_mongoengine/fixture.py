@@ -156,7 +156,7 @@ class BaseFixture(object):
             msg = 'Model "{}" not fount in depended fixture "{}".'.format(ref_model, ref_fixture)
             raise FixturesMongoengineException(msg)
 
-        return getattr(fixture[ref_model], self.pk_field_name)
+        return getattr(fixture[ref_model], fixture.pk_field_name)
 
 
 class Fixture(six.with_metaclass(MetaFixture, BaseFixture)):
