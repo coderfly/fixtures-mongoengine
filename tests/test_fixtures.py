@@ -7,7 +7,7 @@ from tests.fixtures.fixture_post import (
     FixturePostWrongRefFormat, FixturePostWrongRef, FixturePostWithEmbedded,
     FixturePostWithList
 )
-from tests.fixtures.fixture_user import FixtureUser, FixtureUserInvalidData
+from tests.fixtures.fixture_user import FixtureUser, FixtureUserInvalidData, FixtureUserWithInlineData
 from tests.models.user import User
 from tests.test_case import MongoWithClearTestCase
 
@@ -17,6 +17,18 @@ class LoadFixtureTestCase(MongoWithClearTestCase):
     def test_fixture_without_dependencies(self):
 
         fixture = FixtureUser()
+        fixture.load()
+
+        self.assertEqual(fixture['user1'].first_name, 'Joyce')
+        self.assertEqual(fixture['user2'].first_name, 'Amy')
+
+        user1 = User.objects(first_name='Joyce').first()
+        self.assertIsNotNone(user1)
+        self.assertEqual(user1.last_name, 'Ray')
+
+    def test_fixture_inline_data(self):
+
+        fixture = FixtureUserWithInlineData()
         fixture.load()
 
         self.assertEqual(fixture['user1'].first_name, 'Joyce')

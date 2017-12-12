@@ -50,6 +50,8 @@ class BaseFixture(object):
 
     data_file = None
 
+    data = None
+
     attr_name = 'fixture_data'
 
     validate = True
@@ -120,8 +122,11 @@ class BaseFixture(object):
         """
         :rtype: dict
         """
-        data_module = importlib.import_module(self.data_file)
-        return getattr(data_module, self.attr_name)
+        if self.data is not None:
+            return self.data
+        else:
+            data_module = importlib.import_module(self.data_file)
+            return getattr(data_module, self.attr_name)
 
     def _resolve_depends(self, value):
         if isinstance(value, six.string_types):
