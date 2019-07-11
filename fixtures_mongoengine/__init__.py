@@ -6,7 +6,7 @@ from fixtures_mongoengine.fixture import Fixture
 from fixtures_mongoengine.mixin import FixturesMixin
 
 
-__version__ = '1.3.0'
+__version__ = '1.3.1'
 __license__ = 'MIT'
 
 __all__ = [
