@@ -157,7 +157,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
         for fixture in self.get_fixtures().values():
             fixture.load()
 
-        fixtures = self.get_fixtures().values()
+        fixtures = list(self.get_fixtures().values())
         fixtures.reverse()
         for fixture in fixtures:
             fixture.after_load()
@@ -167,7 +167,7 @@ class FixturesMixin(six.with_metaclass(MetaFixturesMixin, object)):
         for fixture in self.get_fixtures().values():
             fixture.before_unload()
 
-        fixtures = self.get_fixtures().values()
+        fixtures = list(self.get_fixtures().values())
         fixtures.reverse()
         for fixture in fixtures:
             fixture.unload()
